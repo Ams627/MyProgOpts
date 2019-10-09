@@ -1,0 +1,146 @@
+:toc:
+:sectnums:
+:toclevels: 5
+:sectnumlevels: 5
+:showcomments:
+:xrefstyle: short
+:icons: font
+:source-highlighter: coderay
+:tick: &#x2714;
+:pound: &#xA3;
+
+= Program Options - trying again!
+
+
+== Introduction
+
+See the following for an introduction on Posix command-line utility syntax:
+
+http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_02[Utility syntax guidelines]
+
+http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html#tag_12_01[Utility Argument Syntax]
+
+There are existing very mature C# command line parsers, but they do not fit well with dependency injection. The 
+approach with this parser is to provide an interface `ICommandLineParser` that allows specifying and parsing options.
+
+Command line programs require options (arguments starting with a minus or double minus). There may also be one _verb_.
+
+Options are of the following types:
+
+. *Boolean*. These options are either present or not.
+. *String*. These options take a number of string parameters (default 1)
+. *Integer*. These options take a number of integers.
+. *Double*. These options take a number of doubles.
+
+== Short options
+
+*Short options* are options specified by a single character such as the `*-m*` (_message_) option of `git commit`.
+
+----
+git commit -m "updated header files"
+----
+
+
+
+Boolean options can be combined so that `*myprog -abc*` is the same as `*myprog -a -b -c*`. Options combined in a single word
+in this way are referred to as grouped options. The word itself is referred to as an _options group_.
+
+A short option can take one or more parameters. Where it does, the option may still appear as part of an options group but it must
+be the final option in the group.
+
+The first or only parameter of a short option may immediately follow the option letter with no intervening space.
+
+== Long options
+
+*Long options* are options starting with a double minus and are typically a whole word rather than just a single letter. An
+example is the `--interactive` option of git rebase:
+
+----
+git rebase --interactive 4205AC4
+----
+
+Long options _typically_ have a precisely equivalent single letter option.
+
+Long options cannot form option groups.
+
+Where a long option takes a parameter, there must be a space between the option and the parameter. *However* an equals
+sign is sometimes allowed between the long option and its parameter with no intervening spaces.
+
+== End of options
+
+A double-dash (`--`) marks the end of options - any argument after the double-dash is not an option.
+
+== Verbs
+
+A command that uses a verb has a single word not starting with a dash that controls the function of the command. Git 
+is the classic example here: the verbs are `init`, `add`, `commit` etc. Verbs are not quite the same thing as options
+but the implementation described below includes them. 
+
+* only one verb is permitted per command (e.g. `git commit add -u` doesn't make sense since it has two verbs).
+* each verb takes a different set of options
+
+== Options with optional parameters
+
+Optional options are sometimes used but are a dubious concept. An optional option can confused with an operand.
+In the first pass, options with optional parameters are not implemented.
+
+== Mutual exclusion
+
+Some options are mutually exclusive. For example in Unix *grep*, *-E* *-F* and *-P* are mutually exclusive.
+
+
+== Implementation
+
+=== Specifying short and long options 
+
+Each option attribute takes two parameters - a single `char` parameter and a `string`. Obviously the `char` parameter
+is for the single letter option and the `string` parameter for the double-dash long option. 
+
+To omit a short option, specify `'\0'`. To omit a long option specify an empty string.
+
+----
+
+=== Version and BuildInfo 
+
+Utilities typically support `--version` and `--help` options. Both can be supported automatically using the `[Help]`
+and `[Version]` attribute classes. Additionally `AmsArgParse` supports the BuildInfo option
+which will provide information about the build number and link date and time.
+
+
+
+=== Mutual exclusion
+
+
+=== Verbs
+
+Options are typically different for each verb of a verb-based program like git. We therefore define a class for each verb. 
+The class contains the set of options for that verb and the class itself is labelled with the `[verb]` attribute. Each
+such class must state that it implements the (empty) `IProgOpts` interface. We can then call `ProgOptsExtensions.ParseAll` with
+a list of types - each type is the type of one of the verb classes. There can be an *empty* verb to allow for the
+case where an option is specified without a verb - e.g. 
+
+----
+myprog --author
+----
+
+
+== The future
+
+Other types of option may be implemented. Ideas include
+
+* Integer ranges e.g.
+
+----
+cut -c 1-3,8-10 file.txt
+----
+
+* Ranges with a double-dot like `git commit` ranges:
+
+----
+prog -h fa5ea7f6..78a53c98
+prog -h fa5ea7f6 .. 78a53c98
+----
+
+* Options based on tuples +
+e.g. we might want to represent latitude longitude pair as a tuple.
+
