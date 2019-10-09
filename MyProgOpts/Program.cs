@@ -91,12 +91,12 @@ namespace MyProgOpts
             }
 
             var validShortOptions = new HashSet<char>(handleToOption.Select(x => x.Value.ShortName));
-            var shortOptionsSet = new HashSet<char>(parsedShortOptions.Keys);
-            shortOptionsSet.ExceptWith(validShortOptions);
+            var parsedShortOptionsSet = new HashSet<char>(parsedShortOptions.Keys);
+            parsedShortOptionsSet.ExceptWith(validShortOptions);
 
-            var validLongOptions = handleToOption.Select(x => x.Value.LongName);
-
-
+            var validLongOptions = new HashSet<string>(handleToOption.Select(x => x.Value.LongName));
+            var parsedLongOptionsSet = new HashSet<string>(parsedLongOptions.Keys);
+            parsedLongOptionsSet.ExceptWith(validLongOptions);
 
         }
 
