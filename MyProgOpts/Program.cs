@@ -7,17 +7,33 @@ using System.Threading.Tasks;
 
 namespace MyProgOpts
 {
+    class Option
+    {
+        public string LongName { get; set; }
+        public char ShortName { get; set; }
+        public Type Type { get; set; }
+
+        public int OptionParams { get; set; }
+        public Option(string longname, char shortname, Type type, int optionParams)
+        {
+            longname = LongName;
+            shortname = ShortName;
+            Type = type;
+            OptionParams = optionParams;
+        }
+    }
+
     class CommandLineParser : ICommandLineParser
     {
-        readonly Dictionary<string, int> parsedOptions = new Dictionary<string, int>();
+        readonly Dictionary<string, int> parsedLongOptions = new Dictionary<string, int>();
+        readonly Dictionary<char, int> parsedShortOptions = new Dictionary<char, int>();
+        readonly Dictionary<string, Option> handleToOption = new Dictionary<string, Option>();
+        int stdin = -1;
 
-        readonly Dictionary<string, string> handleToLongName = new Dictionary<string, string>();
-        readonly Dictionary<string, char> handleToShortName = new Dictionary<string, char>();
-        readonly Dictionary<string, char> handleToShortName = new Dictionary<string, char>();
-
-        public void AddOptionSpec(string name, char shortName, string longName, Type type)
+        public void AddOptionSpec(string handle, char shortName, string longName, Type type, int optionParams = 1)
         {
-            throw new NotImplementedException();
+            var option = new Option(longName, shortName, type, optionParams);
+            handleToOption[handle] = option;
         }
 
         public bool GetOptionValue(string opt, out int i)
@@ -40,7 +56,7 @@ namespace MyProgOpts
             throw new NotImplementedException();
         }
 
-        public void ParseArgs(IEnumerable<string> args)
+        public void ParseArgs(IEnumerable<string> args, out List<string> invalidOptions)
         {
             int i = 0;
             foreach (var arg in args)
@@ -55,24 +71,33 @@ namespace MyProgOpts
                     if (arg.Length == 1)
                     {
                         // a single dash on its own CAN mean stdin
-                        parsedOptions.Add("-", i);
+                        stdin = i;
                     }
                     else if (arg[1] == '-')
                     {
                         // here we have two dashes so we have a long option:
-                        parsedOptions.Add(arg.Substring(2), i);
+                        parsedLongOptions.Add(arg.Substring(2), i);
                     }
                     else
                     {
                         // here we have a single dash followed by one or more characters which are all short options:
                         foreach (var c in arg.Skip(1))
                         {
-                            parsedOptions.Add($"{c}", i);
+                            parsedShortOptions.Add(c, i);
                         }
                     }
                 }
                 i++;
             }
+
+            var validShortOptions = new HashSet<char>(handleToOption.Select(x => x.Value.ShortName));
+            var shortOptionsSet = new HashSet<char>(parsedShortOptions.Keys);
+            shortOptionsSet.ExceptWith(validShortOptions);
+
+            var validLongOptions = handleToOption.Select(x => x.Value.LongName);
+
+
+
         }
 
         public void ParseArgs(params string[] args)
