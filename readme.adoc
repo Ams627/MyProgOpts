@@ -98,13 +98,12 @@ is for the single letter option and the `string` parameter for the double-dash l
 
 To omit a short option, specify `'\0'`. To omit a long option specify an empty string.
 
-----
 
 === Version and BuildInfo 
 
 Utilities typically support `--version` and `--help` options. Both can be supported automatically using the `[Help]`
 and `[Version]` attribute classes. Additionally `AmsArgParse` supports the BuildInfo option
-which will provide information about the build number and link date and time.
+which will provide informaticd on about the build number and link date and time.
 
 
 
@@ -113,11 +112,39 @@ which will provide information about the build number and link date and time.
 
 === Verbs
 
-Options are typically different for each verb of a verb-based program like git. We therefore define a class for each verb. 
-The class contains the set of options for that verb and the class itself is labelled with the `[verb]` attribute. Each
-such class must state that it implements the (empty) `IProgOpts` interface. We can then call `ProgOptsExtensions.ParseAll` with
-a list of types - each type is the type of one of the verb classes. There can be an *empty* verb to allow for the
-case where an option is specified without a verb - e.g. 
+If a program allows _verbs_, it should call `ICommandLineParser.AllowVerbs(<verbset>)` where `<verbset>` is a list comma-separated
+list of strings specifying the verbs allowed.
+
+For example:
+
+----
+var options = new CommandLineParser();
+options.AllowVerbs("add", "commit", "init");
+----
+
+Unless there is a call to AllowVerbs, no verbs will be permitted. 
+
+=== Adding an option specification
+
+To specify a valid option, we must decide on a "name" or handle for an option - this name is not necessarily the same as the string
+used on the command line to set the option althought it can be. For example we can call the SpecifyOption method as follows:
+
+----
+var options = new CommandLineParser();
+options.SpecifyOption("filename", 'f', "file", 1);
+options.ParseCommandLine(args);
+
+var filenameOption = GetOption("filename");
+if (filenameOption.IsSet())
+{
+	string filename = filenameOption.Value;
+}
+----
+
+In the above example, we can set the option on the command line by using `MyProg -f file1.txt`
+
+
+
 
 ----
 myprog --author
