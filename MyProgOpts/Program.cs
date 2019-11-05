@@ -13,10 +13,10 @@ namespace MyProgOpts
             {
                 var args1 = new[] { "--name=1", "-pef" };
                 var options = new CommandLineParser();
-                options.AddOptionSpec("name", 'f', "name", typeof(int));
-                options.AddOptionSpec("n", 'n', "name", typeof(bool), 0);
-                options.AddOptionSpec("e", 'e', "name", typeof(bool), 0);
-                options.AddOptionSpec("p", 'p', "name", typeof(bool), 0);
+                options.AddOptionSpec("name", 'f', "name");
+                options.AddOptionSpec("n", 'n', "name");
+                options.AddOptionSpec("e", 'e', "name");
+                options.AddOptionSpec("p", 'p', "name");
                 options.ParseArgs(args1, out var invalidShort, out var invalidLong);
                 Console.WriteLine($"n {options.TestBooleanOption('n')}");
                 Console.WriteLine($"e {options.TestBooleanOption('e')}");

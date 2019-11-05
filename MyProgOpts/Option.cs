@@ -11,6 +11,7 @@ namespace MyProgOpts
 
         public int NumOptionParams { get; set; }
 
+        public string[] Verbs { get; set; }
         public bool Found { get; set; } = false;
 
         public List<string> OptionParams { get; set; }

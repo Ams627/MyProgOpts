@@ -162,7 +162,7 @@ used on the command line to set the option althought it can be. For example we c
 
 ----
 var options = new CommandLineParser();
-options.SpecifyOption("filename", 'f', "file", 1);
+options.SpecifyOption("filename", 'f', "file") // no type specified so this is a string. Not repeatable.
 options.ParseCommandLine(args);
 
 var filenameOption = GetOption("filename");
@@ -180,7 +180,7 @@ Some options can be repeated in the same command line:
 myprog -i input1.txt -i input1.txt -o output1.html
 ----
 
-==== An option's specification
+==== An option's properties
 
 |===
 | short name		| a single character

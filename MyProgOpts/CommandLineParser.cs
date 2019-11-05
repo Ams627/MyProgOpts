@@ -11,6 +11,7 @@ namespace MyProgOpts
         readonly Dictionary<string, List<string>> optionParams = new Dictionary<string, List<string>>();
 
         readonly Dictionary<string, Option> handleToOption = new Dictionary<string, Option>();
+        readonly HashSet<string> verbs = new HashSet<string>();
 
         ILookup<char, Option> shortLookup;
 
@@ -18,11 +19,18 @@ namespace MyProgOpts
 
         int stdin = -1;
 
-        public void AddOptionSpec(string handle, char shortName, string longName, Type type, int optionParams = 1)
+        public void AddOptionSpec(string handle, char shortName, string longName, int optionParams = 1)
         {
-            var option = new Option(longName, shortName, type, optionParams);
+            var option = new Option(longName, shortName, typeof(string), optionParams);
             handleToOption[handle] = option;
         }
+
+        public void AddOptionSpec<T>(string handle, char shortName, string longName, int optionParams = 1)
+        {
+            var option = new Option(longName, shortName, typeof(T), optionParams);
+            handleToOption[handle] = option;
+        }
+
 
         /// <summary>
         /// Add a list of boolean options which can then be tested with TestBinOpt
@@ -30,6 +38,11 @@ namespace MyProgOpts
         /// <param name="s">A string with short options first followed by a verical bar ("pipe") then followed by a list of long options.
         /// The separator between the long options is also a vertical bar</param>
         void AddBooleanOptions(string s)
+        {
+
+        }
+
+        void AddVerbs(params string[] verbs)
         {
 
         }
