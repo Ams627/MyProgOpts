@@ -41,14 +41,14 @@ git commit -m "updated header files"
 ----
 
 
-
 Boolean options can be combined so that `*myprog -abc*` is the same as `*myprog -a -b -c*`. Options combined in a single word
 in this way are referred to as grouped options. The word itself is referred to as an _options group_.
 
 A short option can take one or more parameters. Where it does, the option may still appear as part of an options group but it must
 be the final option in the group.
 
-The first or only parameter of a short option may immediately follow the option letter with no intervening space.
+The first or only parameter of a short option may immediately follow the option letter with no intervening space even if the
+short option is at the end of an option group.
 
 == Long options
 
@@ -64,7 +64,7 @@ Long options _typically_ have a precisely equivalent single letter option.
 Long options cannot form option groups.
 
 Where a long option takes a parameter, there must be a space between the option and the parameter. *However* an equals
-sign is sometimes allowed between the long option and its parameter with no intervening spaces.
+sign is sometimes allowed between the long option and its parameter **with no intervening spaces**.
 
 == End of options
 
@@ -83,6 +83,37 @@ but the implementation described below includes them.
 
 Optional options are sometimes used but are a dubious concept. An optional option can confused with an operand.
 In the first pass, options with optional parameters are not implemented.
+
+== Quotes
+
+Windows passes the entire command line to a process (including the name of the command itself) - the process startup functions then break
+the command line into words before calling `main(int argc, char**argv)` (C or C++) or `Main(string[] args)` (C#). Double quotes can be
+used to form a single argument from a group of space separated words - however, double quotes are always removed from `args` (or `argv`)
+so that, for example: "That's me Fred"and Jim is converted to two arguments:
+
+----
+That's me Fredand
+Jim
+----
+
+Single quotes are passed unchanged from the command-line to `args`. Bash, when running on Windows, provides the illusion that single-quotes
+can also be used to group words into a single argument. However, all it does is to replace single-quotes with double-quotes before starting
+the command.
+
+[You can see this in C# like this:
+
+----
+Console.WriteLine($"Command line: {Environment.CommandLine}");
+----
+]
+
+Bash on Windows will also pass a quoted argument when escaping the space between two or more arguments with a backslash:
+
+----
+MyProg a\ b\ c
+----
+
+We may wish to process single-quotes specially at a later date.
 
 == Mutual exclusion
 
@@ -135,16 +166,34 @@ options.SpecifyOption("filename", 'f', "file", 1);
 options.ParseCommandLine(args);
 
 var filenameOption = GetOption("filename");
-if (filenameOption.IsSet())
+if (filenameOption.Count == 1)
 {
 	string filename = filenameOption.Value;
 }
 ----
 
-In the above example, we can set the option on the command line by using `MyProg -f file1.txt`
+==== Repeated options
 
+Some options can be repeated in the same command line:
 
+----
+myprog -i input1.txt -i input1.txt -o output1.html
+----
 
+==== An option's specification
+
+|===
+| short name		| a single character
+| long name			| a string
+| type				| a System.Type
+| value				| a string - only if isRepeatable is false
+| values 			| a List<string>  - only if isRepeatable is true
+| verbs				| a string[] array - verbs for which this option is allowed. If empty then this option is for any verb.
+| Count				| the number of times the option was found when parsing the command-line
+| index				| the index - only if isRepeatable is false
+| indices			| a List<int> indicating the positions in which the option was found
+| isRepeatable 		| true or false;
+|===
 
 ----
 myprog --author
